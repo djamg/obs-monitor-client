@@ -1,0 +1,97 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+import configparser
+import subprocess
+import os
+import sys
+
+CONFIG_FILE = "config.ini"
+
+
+class ConfigApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("OBS Monitor Client Configurator")
+        self.geometry("400x340")
+        self.resizable(False, False)
+        self.create_widgets()
+        self.load_config()
+
+    def create_widgets(self):
+        pad = {"padx": 10, "pady": 6}
+        self.fields = {}
+        labels = [
+            ("Server URL", "server_url"),
+            ("Device ID", "device_id"),
+            ("OBS Host", "obs_host"),
+            ("OBS Port", "obs_port"),
+            ("OBS Password", "obs_password"),
+        ]
+        for i, (label, key) in enumerate(labels):
+            ttk.Label(self, text=label + ":").grid(row=i, column=0, sticky="e", **pad)
+            entry = ttk.Entry(self, width=32, show="*" if "password" in key else None)
+            entry.grid(row=i, column=1, **pad)
+            self.fields[key] = entry
+        self.show_pw_var = tk.BooleanVar()
+        show_pw = ttk.Checkbutton(
+            self,
+            text="Show Password",
+            variable=self.show_pw_var,
+            command=self.toggle_password,
+        )
+        show_pw.grid(row=4, column=2, sticky="w")
+        ttk.Button(self, text="Save Config", command=self.save_config).grid(
+            row=6, column=0, **pad
+        )
+        ttk.Button(self, text="Run Client", command=self.run_client).grid(
+            row=6, column=1, **pad
+        )
+
+    def toggle_password(self):
+        show = "" if self.show_pw_var.get() else "*"
+        self.fields["obs_password"].config(show=show)
+
+    def load_config(self):
+        config = configparser.ConfigParser()
+        config.read(CONFIG_FILE)
+        section = config["client"] if "client" in config else {}
+        self.fields["server_url"].insert(
+            0, section.get("server_url", "http://0.0.0.0:5500/api/status")
+        )
+        self.fields["device_id"].insert(0, section.get("device_id", "device_001"))
+        self.fields["obs_host"].insert(0, section.get("obs_host", "localhost"))
+        self.fields["obs_port"].insert(0, section.get("obs_port", "4455"))
+        self.fields["obs_password"].insert(0, section.get("obs_password", ""))
+
+    def save_config(self):
+        config = configparser.ConfigParser()
+        config["client"] = {
+            "server_url": self.fields["server_url"].get(),
+            "device_id": self.fields["device_id"].get(),
+            "obs_host": self.fields["obs_host"].get(),
+            "obs_port": self.fields["obs_port"].get(),
+            "obs_password": self.fields["obs_password"].get(),
+        }
+        with open(CONFIG_FILE, "w") as f:
+            config.write(f)
+        messagebox.showinfo("Saved", "Configuration saved to config.ini")
+
+    def run_client(self):
+        self.save_config()
+        # Run client.py in a new process
+        python_exe = sys.executable
+        try:
+            subprocess.Popen(
+                [python_exe, "client.py"],
+                creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == "nt" else 0,
+            )
+            messagebox.showinfo(
+                "Client Started", "OBS Monitor Client started in a new window."
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not start client.py: {e}")
+
+
+if __name__ == "__main__":
+    app = ConfigApp()
+    app.mainloop()

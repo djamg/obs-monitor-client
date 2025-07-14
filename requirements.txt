@@ -1,0 +1,4 @@
+requests
+obsws-python
+psutil
+# tkinter (included with standard Python on Windows) 
