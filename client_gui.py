@@ -7,13 +7,23 @@ import sys
 
 CONFIG_FILE = "config.ini"
 
+DARK_BG = "#18192a"
+CARD_BG = "#23243a"
+TEXT_COLOR = "#e6e6f0"
+ACCENT = "#a78bfa"
+BUTTON_BG = "#393a4d"
+BUTTON_FG = "#a78bfa"
+ENTRY_BG = "#23243a"
+ENTRY_FG = "#e6e6f0"
+
 
 class ConfigApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("OBS Monitor Client Configurator")
-        self.geometry("400x340")
+        self.geometry("420x350")
         self.resizable(False, False)
+        self.configure(bg=DARK_BG)
         self.create_widgets()
         self.load_config()
 
@@ -27,10 +37,29 @@ class ConfigApp(tk.Tk):
             ("OBS Port", "obs_port"),
             ("OBS Password", "obs_password"),
         ]
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure(
+            "TLabel", background=DARK_BG, foreground=TEXT_COLOR, font=("Segoe UI", 10)
+        )
+        style.configure(
+            "TEntry", fieldbackground=ENTRY_BG, foreground=ENTRY_FG, background=ENTRY_BG
+        )
+        style.configure(
+            "TButton",
+            background=BUTTON_BG,
+            foreground=BUTTON_FG,
+            font=("Segoe UI", 10, "bold"),
+        )
+        style.map("TButton", background=[("active", ACCENT)])
+        style.configure("TCheckbutton", background=DARK_BG, foreground=TEXT_COLOR)
         for i, (label, key) in enumerate(labels):
             ttk.Label(self, text=label + ":").grid(row=i, column=0, sticky="e", **pad)
             entry = ttk.Entry(self, width=32, show="*" if "password" in key else None)
             entry.grid(row=i, column=1, **pad)
+            entry.configure(
+                font=("Segoe UI", 10), background=ENTRY_BG, foreground=ENTRY_FG
+            )
             self.fields[key] = entry
         self.show_pw_var = tk.BooleanVar()
         show_pw = ttk.Checkbutton(
