@@ -1,4 +1,6 @@
 requests
 obsws-python
 psutil
+pyinstaller
+Pillow
 # tkinter (included with standard Python on Windows) 
