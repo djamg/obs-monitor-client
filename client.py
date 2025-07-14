@@ -39,7 +39,8 @@ def get_obs_status(cl, device_id):
             if hasattr(stats_resp, "output_bytes_per_sec")
             else None
         )
-        dropped_frames = getattr(stream_resp, "num_dropped_frames", None)
+        print(dir(stream_resp))
+        dropped_frames = getattr(stream_resp, "output_skipped_frames", None)
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
         storage = get_storage_remaining()
